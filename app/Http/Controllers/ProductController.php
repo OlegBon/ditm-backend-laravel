@@ -9,7 +9,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        return Product::all();
+        return Product::with('images')->get();
     }
 
     public function store(Request $request)
@@ -24,5 +24,10 @@ class ProductController extends Controller
         
         // return response(['allDate' => $request->all()], 200);
         return Product::create($request->all());
+    }
+
+    public function show($id)
+    {
+        return Product::with('images')->findOrFail($id);
     }
 }
