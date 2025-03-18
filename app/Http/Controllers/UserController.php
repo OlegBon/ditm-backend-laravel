@@ -6,58 +6,44 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
-class UserController extends Controller
+class AuthController extends Controller
 {
-    public function index()
-    {
-        return User::with('users')->get();
-    }
-    public function store(Request $request)
-    {
-        $existingUser = User::where('name', $request->name)
-            ->where('email', $request->email)
-            ->first();
-
-        if ($existingUser) {
-            return response()->json($existingUser, 200);
-        }
-
-        return User::create($request->all());
-    }
-
-    public function show($id)
-    {
-        return User::with('users')->findOrFail($id);
-    }
-
+    // Реєстрація користувача
     public function register(Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|string|email|max:255|unique:users',
-        'password' => 'required|string|min:8|confirmed',
-    ]);
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
 
-    $user = User::create([
-        // 'name' => $request->input('name'),
-        'email' => $request->input('email'),
-        'password' => Hash::make($request->input('password')),
-    ]);
+        // Створюємо користувача
+        $user = User::create([
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),
+        ]);
 
-    $token = Str::random(60);
+        // Генеруємо Sanctum-токен
+        $tokenResult = $user->createToken('authToken');
+        $plainTextToken = $tokenResult->plainTextToken;
 
-    $user->api_token = $token;
-    $user->save();
+        // Встановлюємо термін дії токена (1 день)
+        $lastToken = $user->tokens()->latest('id')->first();
+        $lastToken->expires_at = now()->addDays(1);
+        $lastToken->save();
 
-    return response()->json([
-        'message' => 'User registered successfully',
-        'user' => $user,
-        'token' => $token
-    ], 201);
-}
+        // НЕ повертаємо expires_at, щоб фронтенд про нього не знав
+        return response()->json([
+            'message' => 'User registered successfully',
+            'user'    => $user,
+            'token'   => $plainTextToken,
+            // 'expires_at' => $lastToken->expires_at->timestamp, // прибрали expires_at
+        ], 201);
+    }
 
+    // Логін користувача
     public function login(Request $request)
     {
         $request->validate([
@@ -66,22 +52,25 @@ class UserController extends Controller
         ]);
 
         if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json([
-                'message' => 'Invalid credentials'
-            ], 422);
+            return response()->json(['message' => 'Invalid credentials'], 422);
         }
 
         $user = Auth::user();
 
-        $token = Str::random(60);
+        // Створюємо Sanctum-токен
+        $tokenResult = $user->createToken('authToken');
+        $plainTextToken = $tokenResult->plainTextToken;
 
-        $user->api_token = $token;
-        $user->save();
+        // Встановлюємо термін дії токена (1 день)
+        $lastToken = $user->tokens()->latest('id')->first();
+        $lastToken->expires_at = now()->addDays(1);
+        $lastToken->save();
 
+        // НЕ повертаємо expires_at
         return response()->json([
             'message' => 'Logged in successfully',
-            'token' => $token,
-            'user'  => [
+            'token'   => $plainTextToken,
+            'user'    => [
                 'id'    => $user->id,
                 'name'  => $user->name,
                 'email' => $user->email,
@@ -89,25 +78,33 @@ class UserController extends Controller
         ], 200);
     }
 
+    // Логаут користувача (видаляємо поточний Bearer-токен)
     public function logout(Request $request)
     {
-        $authHeader = $request->header('Authorization');
-        if (!$authHeader || !str_starts_with($authHeader, 'Bearer ')) {
-            return response()->json(['message' => 'No token provided'], 401);
-        }
-
-        $token = substr($authHeader, 7);
-
-        $user = User::where('api_token', $token)->first();
+        $user = $request->user();
         if (!$user) {
-            return response()->json(['message' => 'Invalid token'], 401);
+            return response()->json(['message' => 'Not authenticated'], 401);
         }
 
-        $user->api_token = null;
-        $user->save();
+        $user->currentAccessToken()->delete();
 
         return response()->json([
             'message' => 'Logged out successfully'
+        ], 200);
+    }
+
+    // Дані про поточного користувача (маршрут захищений 'auth:sanctum')
+    public function me(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Not logged in'], 401);
+        }
+
+        return response()->json([
+            'id'    => $user->id,
+            'name'  => $user->name,
+            'email' => $user->email,
         ], 200);
     }
 }
