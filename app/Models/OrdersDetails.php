@@ -20,6 +20,6 @@ class OrdersDetails extends Model
     // Зв'язок "багато до одного" з Orders
     public function order()
     {
-        return $this->belongsTo(Orders::class);
+        return $this->belongsTo(Orders::class, 'order_id', 'id');
     }
 }

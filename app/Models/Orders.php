@@ -19,6 +19,6 @@ class Orders extends Model
     // Зв'язок "один до багатьох" з OrderDetails
     public function items()
     {
-        return $this->hasMany(OrdersDetails::class);
+        return $this->hasMany(OrdersDetails::class, 'order_id', 'id');
     }
 }
