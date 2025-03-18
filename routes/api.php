@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
 
 Route::get('/user', function (Request $request) {
@@ -32,3 +33,7 @@ Route::get('/user/{id}', [UserController::class, 'show']);
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [UserController::class, 'login']);
 Route::post('/logout', [UserController::class, 'logout']);
+
+Route::get('/orders', [OrderController::class, 'index']);
+Route::post('/order-create', [OrderController::class, 'store']);
+Route::get('/orders/{id}', [OrderController::class, 'show']);
