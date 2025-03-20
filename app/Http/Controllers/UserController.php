@@ -7,8 +7,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
-class AuthController extends Controller
+class UserController extends Controller
 {
+    public function index()
+    {
+        return User::with('users')->get();
+    }
+
+    public function store(Request $request)
+    {
+        $existingProduct = User::where('email', $request->email)
+            ->first();
+
+        if ($existingProduct) {
+            return response()->json($existingProduct, 200);
+        }
+        
+        return User::create($request->all());
+    }
+
     // Реєстрація користувача
     public function register(Request $request)
     {
@@ -94,7 +111,7 @@ class AuthController extends Controller
     }
 
     // Дані про поточного користувача (маршрут захищений 'auth:sanctum')
-    public function me(Request $request)
+    public function currentUser(Request $request)
     {
         $user = $request->user();
         if (!$user) {
