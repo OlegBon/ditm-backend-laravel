@@ -46,3 +46,7 @@ Route::group([
 Route::get('/orders', [OrderController::class, 'index']);
 Route::post('/order-create', [OrderController::class, 'store']);
 Route::get('/orders/{id}', [OrderController::class, 'show']);
+
+Route::put('/order/{id}', [OrderController::class, 'update']);
+Route::delete('/order/{id}', [OrderController::class, 'delete']);
+Route::delete('/order/{orderId}/items/{itemId}', [OrderController::class, 'removeItem']);

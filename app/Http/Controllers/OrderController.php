@@ -69,4 +69,123 @@ class OrderController extends Controller
         $order = Orders::with('items')->findOrFail($id);
         return response()->json($order);
     }
+
+    // Оновлення замовлення
+    //  UPDATE /api/order/{id}
+    public function update(Request $request, $id)
+    {
+        $order = Orders::with('items')->findOrFail($id);
+
+        // Валідуємо поля замовлення + items
+        $data = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'phone' => 'sometimes|string|max:50',
+            'address' => 'sometimes|string|max:500',
+            'total' => 'sometimes|numeric',
+            'status' => 'sometimes|string|max:50',
+            'items' => 'sometimes|array',
+
+            // Для існуючого item: id != null => оновлюємо
+            // Для нового item: id = null => створюємо
+            'items.*.id' => 'nullable|integer',
+            'items.*.product_id' => 'required|integer|exists:products,id',
+            'items.*.count' => 'required|integer|min:1',
+        ]);
+
+        // Оновлюємо поля замовлення
+        $order->fill($data);
+        $order->save();
+
+        // Якщо є items, обробляємо
+        if (isset($data['items'])) {
+            foreach ($data['items'] as $itemData) {
+                if (!empty($itemData['id'])) {
+                    // Оновлюємо існуючий item
+                    $item = \App\Models\OrdersDetails::where('order_id', $order->id)
+                        ->find($itemData['id']);
+                    if ($item) {
+                        // Знаходимо product, щоб раптом оновити price/title, якщо потрібно
+                        // Але зазвичай при оновленні existing item
+                        // може не змінювати product_id.
+                        // Залежно від вашої логіки
+                        if ($itemData['product_id'] != $item->product_id) {
+                            $product = \App\Models\Product::findOrFail($itemData['product_id']);
+                            $item->product_id = $product->id;
+                            $item->title = $product->title;
+                            $item->price = $product->price;
+                        }
+                        $item->count = $itemData['count'];
+                        $item->save();
+                    }
+                } else {
+                    // Новий item (id=null)
+                    // Знайдемо product
+                    $product = \App\Models\Product::findOrFail($itemData['product_id']);
+
+                    \App\Models\OrdersDetails::create([
+                        'order_id' => $order->id,
+                        'product_id' => $product->id,
+                        'title' => $product->title,
+                        'price' => $product->price,
+                        'count' => $itemData['count'],
+                    ]);
+                }
+            }
+        }
+
+        // Перераховуємо total
+        $order->refresh();
+        $sum = 0;
+        foreach ($order->items as $itm) {
+            $sum += $itm->price * $itm->count;
+        }
+        $order->total = $sum;
+        $order->save();
+
+        return response()->json([
+            'message' => 'Order updated successfully',
+            'order'   => $order->fresh('items'),
+        ]);
+    }
+
+    // видаляти конкретний товар за окремим запитом DELETE
+    public function removeItem($orderId, $itemId)
+    {
+        $order = Orders::findOrFail($orderId);
+        // Шукаємо OrderItem, що належить цьому замовленню
+        $item = \App\Models\OrdersDetails::where('order_id', $order->id)
+            ->findOrFail($itemId);
+
+        $item->delete();
+
+        // Перераховуємо total
+        $order->load('items'); // перезавантажимо зв'язок
+        $sum = 0;
+        foreach ($order->items as $itm) {
+            $sum += $itm->price * $itm->count;
+        }
+        $order->total = $sum;
+        $order->save();
+
+        return response()->json([
+            'message' => 'Item removed successfully',
+            'order'   => $order->fresh('items'),
+        ]);
+    }
+
+    //  Видалити замовлення (для адмінки).
+    //  DELETE /api/order/{id}
+    public function delete($id)
+    {
+        $order = Orders::findOrFail($id);
+
+        // Можна спочатку видалити пов'язані OrdersDetails, якщо в БД немає каскадного видалення
+        // OrdersDetails::where('order_id', $order->id)->delete();
+
+        $order->delete();
+
+        return response()->json([
+            'message' => 'Order deleted successfully'
+        ]);
+    }
 }

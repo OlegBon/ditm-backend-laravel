@@ -14,6 +14,7 @@ class Orders extends Model
         'phone',
         'address',
         'total',
+        'status',
     ];
 
     // Зв'язок "один до багатьох" з OrderDetails
