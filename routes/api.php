@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\NPoshtaController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\CheckTokenExpired;
@@ -50,3 +51,6 @@ Route::get('/order/{id}', [OrderController::class, 'show']);
 Route::put('/order/{id}', [OrderController::class, 'update']);
 Route::delete('/order/{id}', [OrderController::class, 'delete']);
 Route::delete('/order/{orderId}/items/{itemId}', [OrderController::class, 'removeItem']);
+
+Route::get('/nposhta/cities', [NPoshtaController::class, 'getCities']);
+Route::get('/nposhta/branches', [NPoshtaController::class, 'getBranches']);
