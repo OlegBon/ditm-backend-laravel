@@ -21,7 +21,12 @@ class OrderController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:50',
-            'address' => 'required|string|max:500',
+            'address' => 'nullable|string|max:500', // required замінено на nullable
+            'delivery_method' => 'nullable|string|in:courier,nposhta',
+            'np_city' => 'nullable|string|max:255',
+            'np_city_ref' => 'nullable|string|max:255',
+            'np_branch' => 'nullable|string|max:255',
+            'np_branch_ref' => 'nullable|string|max:255',
             'items' => 'required|array',
             'items.*.id' => 'nullable|integer', // product_id (може бути null)
             'items.*.title' => 'required|string|max:255',
@@ -34,7 +39,12 @@ class OrderController extends Controller
         $order = Orders::create([
             'name' => $data['name'],
             'phone' => $data['phone'],
-            'address' => $data['address'],
+            'address' => $data['address'] ?? null,
+            'delivery_method' => $data['delivery_method'],
+            'np_city' => $data['np_city'] ?? null,
+            'np_city_ref' => $data['np_city_ref'] ?? null,
+            'np_branch' => $data['np_branch'] ?? null,
+            'np_branch_ref' => $data['np_branch_ref'] ?? null,
             'total' => $data['total'],
         ]);
 
@@ -81,6 +91,11 @@ class OrderController extends Controller
             'name' => 'sometimes|string|max:255',
             'phone' => 'sometimes|string|max:50',
             'address' => 'sometimes|string|max:500',
+            'delivery_method' => 'sometimes|string|in:courier,nposhta',
+            'np_city' => 'sometimes|string|max:255',
+            'np_city_ref' => 'sometimes|string|max:255',
+            'np_branch' => 'sometimes|string|max:255',
+            'np_branch_ref' => 'sometimes|string|max:255',
             'total' => 'sometimes|numeric',
             'status' => 'sometimes|string|max:50',
             'items' => 'sometimes|array',

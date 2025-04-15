@@ -72,7 +72,11 @@ class NPoshtaController extends Controller
                 return $warehouse['Number'] === $findByString;
             });
 
-            return response()->json($filteredWarehouses);
+            return response()->json([
+                'success' => true,
+                'data' => array_values($filteredWarehouses) // Очищення ключів
+            ]);
+
         } else {
             // Перевірка довжини для пошуку за назвою
             if (mb_strlen($findByString) < 3) {
@@ -100,7 +104,14 @@ class NPoshtaController extends Controller
                 'verify' => false,
             ])->post($url, $data);
 
-            return response()->json($response->json());
+            // Перевіряємо відповідь від API
+            $warehouses = $response->json()['data'] ?? [];
+
+            // Якщо дані присутні, повертаємо успіх
+            return response()->json([
+                'success' => true,
+                'data' => $warehouses
+            ]);
         }
     }
 }

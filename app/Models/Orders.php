@@ -13,6 +13,11 @@ class Orders extends Model
         'name',
         'phone',
         'address',
+        'delivery_method',
+        'np_city',
+        'np_city_ref',
+        'np_branch',
+        'np_branch_ref',
         'total',
         'status',
     ];
