@@ -7,6 +7,7 @@ use App\Http\Controllers\ImageController;
 use App\Http\Controllers\NPoshtaController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WishListController;
 use App\Http\Middleware\CheckTokenExpired;
 
 Route::get('/user', function (Request $request) {
@@ -54,3 +55,7 @@ Route::delete('/order/{orderId}/items/{itemId}', [OrderController::class, 'remov
 
 Route::get('/nposhta/cities', [NPoshtaController::class, 'getCities']);
 Route::get('/nposhta/branches', [NPoshtaController::class, 'getBranches']);
+
+Route::get('/wishlist', [WishListController::class, 'index']);
+Route::post('/wishlist/add', [WishListController::class, 'add']);
+Route::delete('/wishlist/delete', [WishListController::class, 'delete']);
