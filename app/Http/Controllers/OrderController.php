@@ -27,6 +27,7 @@ class OrderController extends Controller
             'np_city_ref' => 'nullable|string|max:255',
             'np_branch' => 'nullable|string|max:255',
             'np_branch_ref' => 'nullable|string|max:255',
+            'status' => 'nullable|string|max:50',
             'items' => 'required|array',
             'items.*.id' => 'nullable|integer', // product_id (може бути null)
             'items.*.title' => 'required|string|max:255',
@@ -45,6 +46,7 @@ class OrderController extends Controller
             'np_city_ref' => $data['np_city_ref'] ?? null,
             'np_branch' => $data['np_branch'] ?? null,
             'np_branch_ref' => $data['np_branch_ref'] ?? null,
+            'status' => $data['status'] ?? 'Pending', // статус за замовчуванням
             'total' => $data['total'],
         ]);
 
