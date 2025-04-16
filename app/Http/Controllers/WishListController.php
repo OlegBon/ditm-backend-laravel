@@ -31,7 +31,7 @@ class WishListController extends Controller
             return response()->json(['message' => 'Missing data'], 400);
         }
 
-        Wishlist::updateOrCreate([
+        WishList::updateOrCreate([
             'user_id' => $userId,
             'product_id' => $productId,
         ]);
@@ -48,7 +48,7 @@ class WishListController extends Controller
             return response()->json(['message' => 'Missing data'], 400);
         }
 
-        Wishlist::where([
+        WishList::where([
             'user_id' => $userId,
             'product_id' => $productId,
         ])->delete();

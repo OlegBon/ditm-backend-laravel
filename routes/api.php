@@ -58,4 +58,4 @@ Route::get('/nposhta/branches', [NPoshtaController::class, 'getBranches']);
 
 Route::get('/wishlist', [WishListController::class, 'index']);
 Route::post('/wishlist/add', [WishListController::class, 'add']);
-Route::delete('/wishlist/delete', [WishListController::class, 'delete']);
+Route::post('/wishlist/delete', [WishListController::class, 'delete']);
