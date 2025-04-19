@@ -8,9 +8,27 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    public function index()
+    // public function index()
+    // {
+    //     return Product::with('images')->get();
+    // }
+
+    public function index(Request $request)
     {
-        return Product::with('images')->get();
+        $query = Product::with('images'); // Базовий запит із підключенням зв'язку `images`
+
+        // Перевірка, чи є параметр `category` у запиті
+        if ($request->has('category')) {
+            $query->where('category', $request->query('category'));
+        }
+
+        // Додаємо рандомне впорядкування
+        $query->inRandomOrder();
+
+        // Обмеження до 10 товарів, якщо їх більше
+        $products = $query->limit(10)->get();
+
+        return response()->json($products);
     }
 
     public function store(Request $request)
