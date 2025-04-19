@@ -29,6 +29,9 @@ Route::post('/product-create', [ProductController::class, 'store']);
 Route::post('/product-image', [ImageController::class, 'store']);
 Route::get('/product/{id}', [ProductController::class, 'show']);
 
+Route::get('/user-viewed-products', [ProductController::class, 'getUserViewedProducts']);
+Route::post('/user-viewed-products', [ProductController::class, 'addUserViewedProduct']);
+
 Route::get('/users', [UserController::class, 'index']);
 Route::post('/user-create', [UserController::class, 'store']);
 // Route::post('/user-image', [UserController::class, 'store']);
