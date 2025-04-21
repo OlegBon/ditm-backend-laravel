@@ -20,13 +20,11 @@ class ProductController extends Controller
         // Перевірка, чи є параметр `category` у запиті
         if ($request->has('category')) {
             $query->where('category', $request->query('category'));
+            $query->inRandomOrder(); // Додаємо рандомне впорядкування для категорій
+            $products = $query->limit(10)->get(); // Повертаємо максимум 10 товарів
+        } else {
+            $products = $query->get(); // Повертаємо всі товари без фільтрації
         }
-
-        // Додаємо рандомне впорядкування
-        $query->inRandomOrder();
-
-        // Обмеження до 10 товарів, якщо їх більше
-        $products = $query->limit(10)->get();
 
         return response()->json($products);
     }
